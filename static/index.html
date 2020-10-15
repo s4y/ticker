@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<meta name=viewport content=width=device-width>
+<style>
+
+html {
+  font: 48px system-ui;
+  font-variant-numeric: tabular-nums;
+  background: #222;
+  color: white;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html.tick {
+  background: white;
+  color: black;
+}
+
+</style>
+<h1 id=clockTime></h1>
+<script type=module>
+"use strict";
+
+let ticking = false;
+let clockOffset;
+let bestRtt;
+
+const tick = now => {
+  if (clockOffset)
+    now -= clockOffset;
+  if (bestRtt)
+    now += bestRtt / 2;
+  const frame = Math.floor(now / (1000/60)) % 10000;
+  clockTime.textContent = frame;
+  document.documentElement.classList[Math.floor(frame / 100) % 2 ? 'add' : 'remove']('tick');
+  requestAnimationFrame(tick);
+};
+
+const connectWs = reloadOnOpen => {
+  let pingInterval;
+  const ping = () => {
+    ws.send(JSON.stringify({
+      type: "ping",
+      startTime: Math.round(performance.now()),
+    }));
+  };
+  const ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+  ws.onopen = e => {
+    if (reloadOnOpen)
+      location.reload(true);
+    pingInterval = setInterval(ping, 1000);
+    ping();
+  };
+  ws.onclose = e => {
+    clearInterval(pingInterval);
+    setTimeout(() => {
+      connectWs(true);
+    }, 1000);
+  };
+  ws.onmessage = e => {
+    const message = JSON.parse(e.data);
+    const { type } = message;
+    if (type == 'pong') {
+      const { startTime, serverTime } = message;
+      const now = performance.now();
+      const rtt = now - startTime;
+      bestRtt = bestRtt ? Math.min(bestRtt, rtt) : rtt;
+      clockOffset = clockOffset ? Math.min(clockOffset, now - serverTime) : now - serverTime;
+      if (!ticking) {
+        tick(performance.now());
+        ticking = true;
+      }
+    }
+  };
+};
+connectWs();
+
+</script>
