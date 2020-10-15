@@ -20,7 +20,7 @@ html.tick {
 
 </style>
 <h1 id=clockTime></h1>
-<script type=module>
+<script>
 "use strict";
 
 let ticking = false;
@@ -68,6 +68,8 @@ const connectWs = reloadOnOpen => {
       const rtt = now - startTime;
       bestRtt = bestRtt ? Math.min(bestRtt, rtt) : rtt;
       clockOffset = clockOffset ? Math.min(clockOffset, now - serverTime) : now - serverTime;
+      console.log(`rtt: ${rtt.toFixed(2)} (best: ${bestRtt.toFixed(2)})`);
+      console.log(`offset: ${(now - serverTime).toFixed(2)} (best: ${clockOffset.toFixed(2)})`);
       if (!ticking) {
         tick(performance.now());
         ticking = true;
