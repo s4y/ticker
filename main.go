@@ -33,8 +33,8 @@ func main() {
 
 		for {
 			var msg struct {
-				Type      string `json:"type"`
-				StartTime uint64 `json:"startTime"`
+				Type      string  `json:"type"`
+				StartTime float64 `json:"startTime"`
 			}
 			if err = conn.ReadJSON(&msg); err != nil {
 				break
@@ -42,10 +42,10 @@ func main() {
 			switch msg.Type {
 			case "ping":
 				conn.WriteJSON(struct {
-					Type       string `json:"type"`
-					StartTime  uint64 `json:"startTime"`
-					ServerTime uint64 `json:"serverTime"`
-				}{"pong", msg.StartTime, uint64(time.Now().UnixNano()) / uint64(time.Millisecond)})
+					Type       string  `json:"type"`
+					StartTime  float64 `json:"startTime"`
+					ServerTime int64   `json:"serverTime"`
+				}{"pong", msg.StartTime, time.Now().UnixNano() / int64(time.Millisecond)})
 			default:
 				fmt.Println("unknown message:", msg)
 			}
