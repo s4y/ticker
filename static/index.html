@@ -27,7 +27,8 @@ let ticking = false;
 let clockOffset;
 let bestRtt;
 
-const tick = now => {
+const tick = () => {
+  let now = +new Date();
   if (clockOffset)
     now -= clockOffset;
   if (bestRtt)
@@ -43,7 +44,7 @@ const connectWs = reloadOnOpen => {
   const ping = () => {
     ws.send(JSON.stringify({
       type: "ping",
-      startTime: Math.round(performance.now()),
+      startTime: +new Date(),
     }));
   };
   const ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
@@ -64,14 +65,14 @@ const connectWs = reloadOnOpen => {
     const { type } = message;
     if (type == 'pong') {
       const { startTime, serverTime } = message;
-      const now = performance.now();
+      const now = +new Date();
       const rtt = now - startTime;
       bestRtt = bestRtt ? Math.min(bestRtt, rtt) : rtt;
       clockOffset = clockOffset ? Math.min(clockOffset, now - serverTime) : now - serverTime;
       console.log(`rtt: ${rtt.toFixed(2)} (best: ${bestRtt.toFixed(2)})`);
       console.log(`offset: ${(now - serverTime).toFixed(2)} (best: ${clockOffset.toFixed(2)})`);
       if (!ticking) {
-        tick(performance.now());
+        tick();
         ticking = true;
       }
     }
