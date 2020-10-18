@@ -30,9 +30,7 @@ let bestRtt;
 const tick = () => {
   let now = +new Date();
   if (clockOffset)
-    now -= clockOffset;
-  if (bestRtt)
-    now += bestRtt / 2;
+    now -= clockOffset - bestRtt / 2;
   const frame = Math.floor(now / (1000/60)) % 10000;
   clockTime.textContent = frame;
   document.documentElement.classList[Math.floor(frame / 100) % 2 ? 'add' : 'remove']('tick');
@@ -67,8 +65,11 @@ const connectWs = reloadOnOpen => {
       const { startTime, serverTime } = message;
       const now = +new Date();
       const rtt = now - startTime;
-      bestRtt = bestRtt ? Math.min(bestRtt, rtt) : rtt;
-      clockOffset = clockOffset ? Math.min(clockOffset, now - serverTime) : now - serverTime;
+      const proposedOffset = now - serverTime;
+      if (bestRtt == null || (rtt <= bestRtt && proposedOffset >= clockOffset)) {
+        clockOffset = proposedOffset;
+        bestRtt = rtt;
+      }
       console.log(`rtt: ${rtt.toFixed(2)} (best: ${bestRtt.toFixed(2)})`);
       console.log(`offset: ${(now - serverTime).toFixed(2)} (best: ${clockOffset.toFixed(2)})`);
       if (!ticking) {
