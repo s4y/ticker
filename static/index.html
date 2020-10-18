@@ -49,7 +49,7 @@ const connectWs = reloadOnOpen => {
   ws.onopen = e => {
     if (reloadOnOpen)
       location.reload(true);
-    pingInterval = setInterval(ping, 1000);
+    pingInterval = setInterval(ping, 1000 + Math.random() * 500);
     ping();
   };
   ws.onclose = e => {
