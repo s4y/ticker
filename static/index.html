@@ -66,7 +66,7 @@ const connectWs = reloadOnOpen => {
       const now = +new Date();
       const rtt = now - startTime;
       const proposedOffset = now - serverTime;
-      if (bestRtt == null || (rtt <= bestRtt && proposedOffset >= clockOffset)) {
+      if (bestRtt == null || (rtt <= bestRtt && proposedOffset <= clockOffset)) {
         clockOffset = proposedOffset;
         bestRtt = rtt;
       }
